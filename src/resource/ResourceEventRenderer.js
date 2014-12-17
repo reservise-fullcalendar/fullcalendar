@@ -257,8 +257,20 @@ function ResourceEventRenderer() {
 			html += slotSegHtml(event, seg);
 		}
 
-		slotSegmentContainer[0].innerHTML = html; // faster than html()
-		eventElements = slotSegmentContainer.children();
+		// Detach slotSegmentContainer before updating it's content.
+		// In general, calling eventRender while container is outside
+		// the DOM can broke something, but it is not our case - and
+		// updating detached elements is a bit cheaper.
+        var containerParent = slotSegmentContainer.parent();
+        slotSegmentContainer.detach();
+
+        slotSegmentContainer[0].innerHTML = html; // faster than html()
+        eventElements = slotSegmentContainer.children();
+
+        _renderEventElements();
+        slotSegmentContainer.appendTo(containerParent);
+
+        function _renderEventElements() {
 		
 		// retrieve elements, run through eventRender callback, bind event handlers
 		for (i=0; i<segCnt; i++) {
@@ -295,12 +307,15 @@ function ResourceEventRenderer() {
 		for (i=0; i<segCnt; i++) {
 			seg = segs[i];
 			if ((eventElement = seg.element)) {
-				seg.vsides = vsides(eventElement, true);
-				seg.hsides = hsides(eventElement, true);
-				titleElement = eventElement.find('.fc-event-title');
-				if (titleElement.length) {
-					seg.contentTop = titleElement[0].offsetTop;
-				}
+                // vsides() and hsides() use expensive .css() calls,
+                // and in our case always return the same values.
+                // Computing .offsetTop may also be expensive.
+                seg.vsides = 1;//vsides(eventElement, true);
+                seg.hsides = 4;//hsides(eventElement, true);
+                titleElement = eventElement.find('.fc-event-title');
+                if (titleElement.length) {
+                    seg.contentTop = 0; //titleElement[0].offsetTop;
+                }
 			}
 		}
 		
@@ -324,7 +339,9 @@ function ResourceEventRenderer() {
 				trigger('eventAfterRender', event, event, eventElement);
 			}
 		}
-					
+
+        } //_renderEventElements
+
 	}
 	
 	
