@@ -578,7 +578,6 @@ function Calendar(element, instanceOptions) {
 	var tm; // for making theme classes
 	var currentView;
 	var elementOuterWidth;
-	var suggestedViewHeight;
 	var resizeUID = 0;
 	var ignoreWindowResize = 0;
 	var date;
@@ -605,7 +604,6 @@ function Calendar(element, instanceOptions) {
 		}
 		else if (elementVisible()) {
 			// mainly for the public API
-			calcSize();
 			_renderView(inc);
 		}
 	}
@@ -782,36 +780,16 @@ function Calendar(element, instanceOptions) {
 		if (elementVisible()) {
 			unselect();
 			clearEvents();
-			calcSize();
 			setSize();
 			renderEvents();
 		}
 	}
 	
 	
-	function calcSize() { // assumes elementVisible
-		if (options.contentHeight) {
-			suggestedViewHeight = options.contentHeight;
-		}
-		else if (options.height) {
-			suggestedViewHeight = options.height - (headerElement ? headerElement.height() : 0) - vsides(content);
-		}
-		else {
-			suggestedViewHeight = Math.round(content.width() / Math.max(options.aspectRatio, .5));
-		}
-	}
-	
-	
 	function setSize() { // assumes elementVisible
 
-		if (suggestedViewHeight === undefined) {
-			calcSize(); // for first time
-				// NOTE: we don't want to recalculate on every renderView because
-				// it could result in oscillating heights due to scrollbars.
-		}
-
 		ignoreWindowResize++;
-		currentView.setHeight(suggestedViewHeight);
+		currentView.setHeight(content.height());
 		currentView.setWidth(content.width());
 		ignoreWindowResize--;
 
@@ -1037,7 +1015,7 @@ function Calendar(element, instanceOptions) {
 		if (value === undefined) {
 			return options[name];
 		}
-		if (name == 'height' || name == 'contentHeight' || name == 'aspectRatio') {
+		if (false /* to be updated */) {
 			options[name] = value;
 			updateSize();
 		}
