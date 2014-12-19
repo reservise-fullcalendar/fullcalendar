@@ -695,7 +695,7 @@ function Calendar(element, instanceOptions) {
 		if (value === undefined) {
 			return options[name];
 		}
-		if (false /* to be updated */) {
+		if (name == 'minResourceWidth') {
 			options[name] = value;
 			updateSize();
 		}

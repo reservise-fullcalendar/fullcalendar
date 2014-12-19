@@ -7,6 +7,7 @@ function ResourceEventRenderer() {
 	t.renderEvents = renderEvents;
 	t.clearEvents = clearEvents;
 	t.slotSegHtml = slotSegHtml;
+	t.getColCnt = getColCnt;
 	
 	
 	// imports
@@ -25,7 +26,6 @@ function ResourceEventRenderer() {
 	var colContentLeft = t.colContentLeft;
 	var colContentRight = t.colContentRight;
 	var cellToDate = t.cellToDate;
-	var getColCnt = function() { return getResources().length; };
 	var getColWidth = t.getColWidth;
 	var getSnapHeight = t.getSnapHeight;
 	var getSnapDuration = t.getSnapDuration;
@@ -51,6 +51,11 @@ function ResourceEventRenderer() {
 	// overrides
 	t.draggableDayEvent = draggableDayEvent;
 
+
+	/* getColCnt */
+	function getColCnt() {
+		return getResources().length;
+	};
 	
 	
 	/* Rendering

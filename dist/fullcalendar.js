@@ -1015,7 +1015,7 @@ function Calendar(element, instanceOptions) {
 		if (value === undefined) {
 			return options[name];
 		}
-		if (false /* to be updated */) {
+		if (name == 'minResourceWidth') {
 			options[name] = value;
 			updateSize();
 		}
@@ -5881,7 +5881,8 @@ setDefaults({
 	},
 	minTime: '00:00:00',
 	maxTime: '24:00:00',
-	slotEventOverlap: true
+	slotEventOverlap: true,
+	minResourceWidth: 70
 });
 
 
@@ -5896,7 +5897,6 @@ function ResourceView(element, calendar, viewName) {
 	t.renderResource = renderResource;
 	t.setWidth = setWidth;
 	t.setHeight = setHeight;
-	t.afterRender = afterRender;
 	t.computeDateTop = computeDateTop;
 	t.getIsCellAllDay = getIsCellAllDay;
 	t.allDayRow = function() { return allDayRow; }; // badly named
@@ -5910,7 +5910,6 @@ function ResourceView(element, calendar, viewName) {
 	t.getSlotSegmentContainer = function() { return slotSegmentContainer; };
 	t.getSlotContainer = function() { return slotContainer; };
 	t.getRowCnt = function() { return 1; };
-	t.getColCnt = function() { return 1; };
 	t.getColWidth = function() { return colWidth; };
 	t.getSnapHeight = function() { return snapHeight; };
 	t.getSnapDuration = function() { return snapDuration; };
@@ -6091,11 +6090,20 @@ function ResourceView(element, calendar, viewName) {
 		}
 		
 		slotScroller =
-			$("<div style='position:absolute;width:100%;overflow-x:hidden;overflow-y:auto'/>")
+			$("<div style='position:absolute;width:100%;overflow:auto'/>")
 				.appendTo(slotLayer);
+
+		slotScroller.on('scroll', function(e) {
+			if (dayTable) {
+				var scroll = slotScroller[0].scrollLeft;
+				dayTable[0].style.left = -scroll+'px';
+				slotTable[0].style.left = scroll+'px';
+			}
+		});
+
 				
 		slotContainer =
-			$("<div style='position:relative;width:100%;overflow:hidden'/>")
+			$("<div style='position:relative;overflow:hidden'/>")
 				.appendTo(slotScroller);
 				
 		slotSegmentContainer =
@@ -6103,7 +6111,7 @@ function ResourceView(element, calendar, viewName) {
 				.appendTo(slotContainer);
 		
 		s =
-			"<table class='fc-agenda-slots' style='width:100%' cellspacing='0'>" +
+			"<table class='fc-agenda-slots' style='position:relative;width:100%' cellspacing='0'>" +
 			"<tbody>";
 
 		slotTime = moment.duration(+minTime); // i wish there was .clone() for durations
@@ -6169,7 +6177,7 @@ function ResourceView(element, calendar, viewName) {
 
 	function buildDayTableHTML() {
 		var html =
-			"<table style='width:100%' class='fc-agenda-days fc-border-separate' cellspacing='0'>" +
+			"<table style='position:relative;width:100%' class='fc-agenda-days fc-border-separate' cellspacing='0'>" +
 			buildDayTableHeadHTML() +
 			buildDayTableBodyHTML() +
 			"</table>";
@@ -6323,8 +6331,6 @@ function ResourceView(element, calendar, viewName) {
 		
 		slotLayer.css('top', headHeight);
 		
-		slotScroller.height(bodyHeight - allDayHeight - 1);
-		
 		// the stylesheet guarantees that the first row has no border.
 		// this allows .height() to work well cross-browser.
 		var slotHeight0 = slotTable.find('tr:first').height() + 1; // +1 for bottom border
@@ -6363,9 +6369,31 @@ function ResourceView(element, calendar, viewName) {
 			gutterCells = gutterCells.add(allDayTable.find('th.fc-agenda-gutter'));
 		}
 
-		var slotTableWidth = slotScroller[0].clientWidth; // needs to be done after axisWidth (for IE7)
-		
-		gutterWidth = slotScroller.width() - slotTableWidth;
+		var minResourceWidth = calendar.options.minResourceWidth || 1;
+		var slotTableWidth = Math.max(slotScroller[0].clientWidth,
+										axisWidth + t.getColCnt() * minResourceWidth);
+		if (t.getColCnt() === 1) {
+			slotTableWidth = Math.max(axisWidth + minResourceWidth,
+				Math.floor(slotScroller[0].clientWidth * 0.66));
+		}
+		var slotTableWidthPx = slotTableWidth+'px';
+		slotContainer[0].style.minWidth = slotTableWidthPx;
+		slotContainer[0].style.maxWidth = slotTableWidthPx;
+		slotContainer[0].style.width = slotTableWidthPx;
+		dayTable[0].style.minWidth = slotTableWidthPx;
+		dayTable[0].style.maxWidth = slotTableWidthPx;
+		dayTable[0].style.width = slotTableWidthPx;
+		if (daySegmentContainer.length) {
+			daySegmentContainer[0].style.minWidth = slotTableWidthPx;
+			daySegmentContainer[0].style.maxWidth = slotTableWidthPx;
+			daySegmentContainer[0].style.width = slotTableWidthPx;
+		}
+
+		colWidth = Math.floor((slotTableWidth - axisWidth) / colCnt);
+		setOuterWidth(dayHeadCells.slice(0, -1), colWidth);
+
+		gutterWidth = slotTableWidth - axisWidth - t.getColCnt() * colWidth;
+
 		if (gutterWidth) {
 			setOuterWidth(gutterCells, gutterWidth);
 			gutterCells
@@ -6378,33 +6406,6 @@ function ResourceView(element, calendar, viewName) {
 				.prev()
 				.addClass('fc-last');
 		}
-		
-		colWidth = Math.floor((slotTableWidth - axisWidth) / colCnt);
-		setOuterWidth(dayHeadCells.slice(0, -1), colWidth);
-	}
-	
-
-
-	/* Scrolling
-	-----------------------------------------------------------------------*/
-
-
-	function resetScroll() {
-		var top = computeTimeTop(
-			moment.duration(opt('scrollTime'))
-		) + 1; // +1 for the border
-
-		function scroll() {
-			slotScroller.scrollTop(top);
-		}
-
-		scroll();
-		setTimeout(scroll, 0); // overrides any previous scroll state made by the browser
-	}
-
-
-	function afterRender() { // after the view has been freshly rendered and sized
-		resetScroll();
 	}
 	
 	
@@ -6900,6 +6901,7 @@ function ResourceEventRenderer() {
 	t.renderEvents = renderEvents;
 	t.clearEvents = clearEvents;
 	t.slotSegHtml = slotSegHtml;
+	t.getColCnt = getColCnt;
 	
 	
 	// imports
@@ -6918,7 +6920,6 @@ function ResourceEventRenderer() {
 	var colContentLeft = t.colContentLeft;
 	var colContentRight = t.colContentRight;
 	var cellToDate = t.cellToDate;
-	var getColCnt = function() { return getResources().length; };
 	var getColWidth = t.getColWidth;
 	var getSnapHeight = t.getSnapHeight;
 	var getSnapDuration = t.getSnapDuration;
@@ -6944,6 +6945,11 @@ function ResourceEventRenderer() {
 	// overrides
 	t.draggableDayEvent = draggableDayEvent;
 
+
+	/* getColCnt */
+	function getColCnt() {
+		return getResources().length;
+	};
 	
 	
 	/* Rendering
