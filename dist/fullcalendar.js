@@ -6831,7 +6831,16 @@ function ResourceView(element, calendar, viewName) {
 				var d1 = realCellToDate(cell);
 				var d2 = d1.clone();
 				if (d1.hasTime()) {
-					d2.add(calendar.defaultTimedEventDuration);
+                    // If draggable contains event data (see fullcalendar 2.2
+                    // docs for `eventReceive`) with specified duration,
+                    // let use it. I expect fullcalendar 2.2 to implement it
+                    // on it's own, but we are not going to use yet.
+					var event = $(_dragElement).data('event');
+					if (event && event.duration) {
+						d2.add(event.duration);
+					} else {
+						d2.add(calendar.defaultTimedEventDuration);
+					}
 					renderSlotOverlay(d1, d2, cell.col);
 				}
 				else {
