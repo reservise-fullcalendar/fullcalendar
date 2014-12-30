@@ -43,7 +43,6 @@ function ResourceEventRenderer() {
 	var getMinTime = t.getMinTime;
 	var getMaxTime = t.getMaxTime;
 	var calendar = t.calendar;
-	var formatDate = calendar.formatDate;
 	var getEventEnd = calendar.getEventEnd;
 	var getResources = t.getResources;
 	
@@ -332,15 +331,7 @@ function ResourceEventRenderer() {
 				height = Math.max(0, seg.outerHeight - seg.vsides);
 				eventElement[0].style.height = height + 'px';
 				event = seg.event;
-				if (seg.contentTop !== undefined && height - seg.contentTop < 10) {
-					// not enough room for title, put it in the time (TODO: maybe make both display:inline instead)
-					eventElement.find('div.fc-event-time')
-						.text(
-							formatDate(event.start, opt('timeFormat')) + ' - ' + event.title
-						);
-					eventElement.find('div.fc-event-title')
-						.remove();
-				}
+				// Feature removed from that place collided with html titles
 				trigger('eventAfterRender', event, event, eventElement);
 			}
 		}
@@ -385,11 +376,8 @@ function ResourceEventRenderer() {
 				"'" +
 			">" +
 			"<div class='fc-event-inner'>" +
-			"<div class='fc-event-time'>" +
-			htmlEscape(t.getEventTimeText(event)) +
-			"</div>" +
 			"<div class='fc-event-title'>" +
-			htmlEscape(event.title || '') +
+			(event.title || '') +
 			"</div>" +
 			"</div>" +
 			"<div class='fc-event-bg'></div>";
