@@ -457,14 +457,8 @@ function ResourceView(element, calendar, viewName) {
 	
 		var headHeight = dayBody.position().top;
 		var allDayHeight = slotScroller.position().top; // including divider
-		var bodyHeight = Math.min( // total body height, including borders
-			height - headHeight,   // when scrollbars
-			slotTable.height() + allDayHeight + 1 // when no scrollbars. +1 for bottom border
-		);
+		dayBodyFirstCellStretcher.height(slotTable.height() + allDayHeight + 1);
 
-		dayBodyFirstCellStretcher
-			.height(bodyHeight - vsides(dayBodyFirstCell));
-		
 		slotLayer.css('top', headHeight);
 		
 		// the stylesheet guarantees that the first row has no border.
