@@ -597,5 +597,14 @@ table.fc-border-separate {
 .fc-agenda .ui-resizable-resizing { /* TODO: better selector */
 	_overflow: hidden;
 	}
-	
-	
+
+.timeline {
+    position: absolute;
+    left: 59px;
+    border: none;
+    border-top: 1px solid red;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    z-index: 999;
+}
